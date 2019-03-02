@@ -1,3 +1,4 @@
 # simplified-distributed-tensorflow
 a simplified distributed machine learning system
+
 该系统为一个简单的分布式机器学习系统，支持以分布式的模式将机器学习的过程部署到多台机器上执行。当机器学习需训练的参数量大，计算过程多时，可通过配置集群将参数集中在一台机器上进行更新，并配置多台worker同时进行计算以提高训练速度。
