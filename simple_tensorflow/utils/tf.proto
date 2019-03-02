@@ -1,0 +1,76 @@
+syntax = "proto3";
+package protos;
+
+service master{//表示Master服务类，定义其可供远程调用的方法
+    rpc register_cluster(cluster)returns(status);//初始化集群，建立与ps,worker间连接
+    rpc register_graph(graph_def)returns(status);//请求将图分别注册到ps、worker中
+    rpc train(data)returns(res);//请求master执行一次训练过程
+}
+
+service ps{//ParameterServer服务类
+    rpc register_cluster(cluster)returns(status);//初始化集群，建立与workers间连接
+    rpc register_graph(ps_def)returns(status);//注册图，即初始化参数
+    rpc run(step)returns(status);//向各worker请求计算结果，更新参数并将参数发送到自身para_pool中
+    rpc send_paras(step)returns(paras);//接受worker请求，在para_pool中取参数返回给worker
+}
+
+service worker{
+    rpc register_cluster (cluster) returns (status);//初始化集群，建立与ps间连接
+    rpc register_graph (ws_def) returns (status);//注册图，即选择激活函数和损失函数
+    rpc run (step_data) returns (res); //执行计算过程，计算后将结果发送到本地para_pool中
+    rpc send_paras (step) returns (paras);//接受ps请求，在para_pool中取计算结果返回给ps
+}
+
+message cluster{//初始化集群的可装配参数
+    string ps = 1;//ps地址
+    repeated string workers = 2;//数组，workers地址
+}
+message status{//响应参数
+    int32 code = 1;//状态码
+    string mes = 2;//响应信息
+}
+
+message graph_def{
+    ps_def ps = 1;
+    ws_def ws = 2;
+}
+
+message ps_def{
+    array w = 1;
+    array b = 2;
+    float c = 3;
+}
+
+message ws_def{
+    string active_fuc = 1;
+    string loss_fuc = 2;
+}
+
+message paras{
+    array w = 1;
+    array b = 2;
+}
+
+message step_data{
+    int32 step = 1;
+    array x = 2;
+    array y = 3;
+}
+
+message data{
+    array x = 1;
+    array y = 2;
+}
+
+message array{
+    repeated float value = 1;  //降为1维的数组
+    repeated int32 shape = 2;  //数组的shape
+}
+
+message res{
+    array output = 1;
+}
+
+message step{
+    int32 step = 1;
+}
